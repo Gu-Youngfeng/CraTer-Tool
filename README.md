@@ -1,39 +1,36 @@
 # CraTer-Tool
 
-### Introduction
-CraTer-Tool is a light-weight prototype of [CraTer](https://github.com/Gu-Youngfeng/CraTer/), it can quickly analysis a Java crash and predict whether the fault reside inside or outside of the stack trace. 
+## Introduction
+**CraTer-Tool** is a light-weight prototype of [CraTer](https://github.com/Gu-Youngfeng/CraTer/), it can quickly analysis a Java crash and predict whether the fault reside inside or outside of the stack trace. 
 
 The key ideas of the prototype are: **1)** build a classification model based on the extracted features from historical crashes; **2)** use the built model to predict the fault position of new-submited crash.
 
-### Deployment
-JDK 8.0 is needed. The location of historical crashes (Line 51 and Line 60) is hard-implemented in the code, you have to change the directory to your own `files/empty.csv` and `files/total/training_set.csv`.
+## Deployment
+1. Download the project and import it into Eclipse IDE (or other Java IDE).
+2. the compilation of faulty project (i.e., jar format) as well as its dependencies (i.e., jar format) are required to be added to the classpath of the **CraTer-Tool** project.
+3. Package the `crater-tool.jar` from **CraTer-Tool** project and put it into the root directory of **CraTer-Tool** project. This step can be implemented by the support of Eclipse IDE.
 
-```java
-Instances empty_ins = DataSource.read("C:/Users/yongfeng/Desktop/git/CraTer-tool/files/empty.arff");         /** Line 51 **/
-empty_ins.setClassIndex(empty_ins.numAttributes() - 1);                                                      /** Line 52 **/
-Instance currently_ins = new DenseInstance(feature_total.length);                                            /** Line 53 **/
- ...			
-/** training set loading*/
-Instances ins = DataSource.read("C:/Users/yongfeng/Desktop/git/CraTer-tool/files/total/training_set.arff");  /** Line 60 **/
-ins.setClassIndex(ins.numAttributes() - 1);                                                                  /** Line 61 **/
+## Usage example
+
+Suppose that we have a faulty project `E:/codec/`, and its crash trace is saved in the file `E:/codec-1.txt`.
+
+```
+BUG-1
+--- org.apache.commons.codec.binary.Base32InputStreamTest::testBase32InputStreamByteByByte
+java.lang.ArrayIndexOutOfBoundsException: 1126916991
+	at org.apache.commons.codec.binary.Base32.encode(Base32.java:515)
+	at org.apache.commons.codec.binary.BaseNCodecInputStream.read(BaseNCodecInputStream.java:160)
+	at org.apache.commons.codec.binary.BaseNCodecInputStream.read(BaseNCodecInputStream.java:97)
 ```
 
-Besides, remember to add the compilation jar and dependencies to the project before packaging the crater-tool.jar.
-
-### Usage
-
-Step-1: Package the `crater-tool.jar` from CraTer-Tool project.
-
-This step can be implemented by the support of Eclipse IDE. 
-Right click on project -> click "Export" -> click "Runnable JAR file" -> fill the "Launcher Configuration" and "Export destination" -> click "Finish".
-
-Step-2: Use the following command to predict the fault position of a crash, where the `E:/codec` refers to the faulty code path and `E:/codec-1` denotes the stack trace path,  
+Then we use the following command to predict the fault position of a crash.
 
 ```cmd
 $ java -jar crater-tool.jar -projPath E:/codec/ -projStackTrace E:/codec-1.txt
 ```
 
-As we can see, **crater-tool.jar** has two inputs and its output is the prediction results as follows,
+As we can see, **crater-tool.jar** has two inputs and its output is the prediction results as follows.
+According to the prediction results, **crater-tool.jar** predicts the fault resides inside of the stack trace.
 
 ```
 >>>>> Crash Information:
@@ -64,3 +61,7 @@ The crashing fault may reside INSIDE of the stack trace. Try to check the follow
         at org.apache.commons.codec.binary.BaseNCodecInputStream.read(BaseNCodecInputStream.java:97)
 
 ```
+
+## Parameter tuning
+- If you wanna change the training set of `crater-tool.jar`, you can find and replace the `files/training_set.csv`.
+- If you wanna change the classifier used in `crater-tool.jar`, you can find and modify the code in Line 77 of the 'cstar.yongfeng.launcher.Entry.java'
