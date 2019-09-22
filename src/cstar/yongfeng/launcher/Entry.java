@@ -12,6 +12,16 @@ import weka.core.Instances;
 import weka.core.converters.ConverterUtils.DataSource;
 import weka.filters.supervised.instance.SMOTE;
 
+/***
+ * <p>Class <b>Entry</b> is an entry of the project crater-tool.
+ * The input arguments include "-projPath" which refers to the path of faulty code
+ * and "-projStackTrace" which denotes the path of stack trace. The simple example given as follows,
+ * </p>
+ * <pre>java -jar -projPath E:/codec/ -projStackTrace E:/codec-1.txt</pre>
+ * <p>Before packaging the project, the compilation of E:/codec and its dependencies should be added to crater-tool project.</p>
+ * @author yongfeng
+ * @date 2019.9.22
+ */
 public class Entry {
 
 	public static void main(String[] args) {
@@ -48,7 +58,7 @@ public class Entry {
 		try {
 			
 			/** currently instance*/
-			Instances empty_ins = DataSource.read("C:/Users/yongfeng/Desktop/git/CraTer-tool/files/empty.arff");
+			Instances empty_ins = DataSource.read("files/empty.arff");
 			empty_ins.setClassIndex(empty_ins.numAttributes() - 1);
 			Instance currently_ins = new DenseInstance(feature_total.length);
 			for(int i=0; i<feature_total.length; i++) {
@@ -57,7 +67,7 @@ public class Entry {
 //			System.out.print(empty_ins.classAttribute());
 			
 			/** training set loading*/
-			Instances ins = DataSource.read("C:/Users/yongfeng/Desktop/git/CraTer-tool/files/total/training_set.arff");
+			Instances ins = DataSource.read("files/training_set.arff");
 			ins.setClassIndex(ins.numAttributes() - 1);
 			
 			/** imbalance processing*/
