@@ -1,5 +1,6 @@
 package cstar.yongfeng.launcher;
 
+import java.text.DecimalFormat;
 import java.util.List;
 
 import cstar.yongfeng.analysis.CrashNode;
@@ -13,92 +14,111 @@ import weka.core.converters.ConverterUtils.DataSource;
 import weka.filters.supervised.instance.SMOTE;
 
 /***
- * <p>Class <b>Entry</b> is an entry of the project crater-tool.
- * The input arguments include "-projPath" which refers to the path of faulty code
- * and "-projStackTrace" which denotes the path of stack trace. The simple example given as follows,
+ * <p>CraTer is a light-weight prototype for Java crash localization task. 
+ * Given the stack trace of crashed Java program as well as the source code,
+ * CraTer can analyze and predict whether the root-cause-line of this crash reside in the stack trace or not.
  * </p>
- * <pre>java -jar -projPath E:/codec/ -projStackTrace E:/codec-1.txt</pre>
- * <p>Before packaging the project, the compilation of E:/codec and its dependencies should be added to crater-tool project.</p>
+ * 
+ * <p>A usage example is given as follows,
+ * <pre>java -jar -projPath x/xx -projStackTrace x/xx.txt</pre>
+ * where the <b>"-projPath"</b> refers to the root path of the project and 
+ * <b>"-projStackTrace"</b> refers to the path of stack trace file (in .txt format). 
+ * </p>
  * @author yongfeng
- * @date 2019.9.22
+ * @date 2021.1.16
  */
 public class Entry {
 
 	public static void main(String[] args) {
 		int args_size = args.length;
 		
-		String[] valid_cmds = {"-projPath", "-projStackTrace", "-projClasspath"};
+		String[] valid_cmds = {"-projPath", "-projStackTrace"};
 		
-		String path = "";
-		String proj = ""; 
-		String[] dependencies = {};
+		String projPath = "";
+		String tracePath = ""; 
 		
-		for(int i=0; i<args_size-1; i++) {
-			if(args[i].equals(valid_cmds[0])) { 
-				proj = args[i+1];
-			}else if(args[i].equals(valid_cmds[1])) {
-				path = args[i+1];
-			}else if(args[i].equals(valid_cmds[2])) {
-				dependencies = args[i+1].split(";");
-			}
+		if(args_size == 4 && args[0].equals(valid_cmds[0]) 
+				&& args[2].equals(valid_cmds[1])){
+			// Run CraTer
+			projPath = args[1];
+			tracePath = args[3];
+			new Entry().run(projPath, tracePath);
+		}else{
+			// Illegal input arguments
+			printHelpInfo();
 		}
-		
-		new Entry().run(path, proj);
 
 	}
 	
-	public void run(String path, String proj) {
-		double[] feature_total = RepsUtilier.getFeatures(path, proj);
-		
-		System.out.println("------------------------------------------------\n");
-		System.out.println(">>>>> Crashing Fault Residence:");
-//		String pwd = System.getProperty("user.dir").replace("\\", "/") + "/";
-//		System.out.println(pwd);
-		
+	/***
+	 * Using the CraTer to analyze the given Java crash then predict
+	 * the position of root-cause-line of the crash.
+	 * @param projPath root path of the project
+	 * @param tracePath path to stack trace file
+	 */
+	public void run(String projPath, String tracePath) {
+				
 		try {
+			// extract features from stack trace and source code
+			double[] feature_total = RepsUtilier.getFeatures(tracePath, projPath);			
 			
-			/** currently instance*/
-			Instances empty_ins = DataSource.read("files/empty.arff");
+			// currently instance
+			Instances empty_ins = DataSource.read("files/empty.arff");	
 			empty_ins.setClassIndex(empty_ins.numAttributes() - 1);
 			Instance currently_ins = new DenseInstance(feature_total.length);
 			for(int i=0; i<feature_total.length; i++) {
 				currently_ins.setValue(i, feature_total[i]);
 			}
-//			System.out.print(empty_ins.classAttribute());
 			
-			/** training set loading*/
+			// train
 			Instances ins = DataSource.read("files/training_set.arff");
 			ins.setClassIndex(ins.numAttributes() - 1);
 			
-			/** imbalance processing*/
+			// imbalance processing
 			SMOTE smote = new SMOTE();
 			smote.setInputFormat(ins);
 			
-			/** classifiers setting*/
+			// classifiers setting
 			RandomForest rf = new RandomForest();			
 			FilteredClassifier fc = new FilteredClassifier();
 			fc.setClassifier(rf);
 			fc.setFilter(smote);
 			
+			// predict
 			fc.buildClassifier(ins);
 //			String pre_result = fc.classifyInstance(currently_ins)>0?"OutTrace":"InTrace";
 			double[] pre_dis = fc.distributionForInstance(currently_ins);
-			System.out.printf("Intrace: %-5.3f vs OutTrace: %-5.3f\n", pre_dis[0], pre_dis[1]);
+			DecimalFormat df = new DecimalFormat("0.00%");
+			System.out.println(">>>>> Prediction Results:");
+			System.out.printf("Possibility: {INSIDE - %s, OUTSIDE - %s}.\n", df.format(pre_dis[0]), df.format(pre_dis[1]));
 			
-			List<CrashNode> lsCrashes = RepsUtilier.getSingleCrash(path);
+			List<CrashNode> lsCrashes = RepsUtilier.getSingleCrashWithoutBug(tracePath);
 			List<String> stacktrace = lsCrashes.get(0).stackTraces;
 			if(pre_dis[0] > pre_dis[1]){
-				System.out.println("The crashing fault may reside INSIDE of the stack trace. Try to check the following lines,\n");
+				System.out.println("The root-cause-line of the given crash may reside INSIDE of the stack trace. Try to check \nthe following specific lines,\n");
 				for(String line: stacktrace) System.out.println(line);
 			}else{
-				System.out.println("The crashing fault may reside OUTSIDE of the stack trace. Try to check the code through the method invocations, \n");
+				System.out.println("The root-cause-line of the given crash may reside OUTSIDE of the stack trace. Try to check \nthe code through the method invocations, \n");
 				for(String line: stacktrace) System.out.println(line);
 			}
-
-			
+			System.out.println("\n------------------------------------------------");
+	
 		}catch (Exception e) {
-			System.out.println("[ERROR]: CraTer failed!");
+			printHelpInfo();
 		}
+	}
+	
+	/** Print the possible failed reasons. */
+	public static void printHelpInfo(){
+		System.err.println("Oops, CraTer is failed!\n-----------------");
+		System.err.println("(1) Try to check the parameters that Crater supports:");
+		System.out.println("\t -projPath       <path/to/project/>");
+		System.out.println("\t -projStackTrace <path/to/crash.txt>");
+		System.out.println("\t -cp             <path/to/proj.jar>");	
+		System.err.println("(2) Try to check the format of crash.txt:");
+		System.out.println("\t stack trace should be saved in a txt format.");
+		System.err.println("(3) Try to check the class path of analysized project");
+		System.out.println("\t Third-party libraries should be added followed by \'-cp\'");
 	}
 
 }

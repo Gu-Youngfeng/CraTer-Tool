@@ -17,7 +17,7 @@ public class SRCAnalyzer {
 	SRCAnalyzer(String proj){
 		javaFiles = 0;
 		allClasses = 0;
-		String projMain = proj + "src/main/java/";
+		String projMain = proj + "src/";
 		getJavaFileUnderDir(projMain);
 		getAllClassUnderDir(projMain);
 	}
@@ -45,6 +45,8 @@ public class SRCAnalyzer {
 		Launcher launcher = new Launcher();
 		launcher.addInputResource(proj);
 		launcher.getEnvironment().setAutoImports(false);
+		launcher.getEnvironment().setAutoImports(false);
+		launcher.getEnvironment().setNoClasspath(true);
 		launcher.buildModel();
 		CtModel model = launcher.getModel();
 		List<CtClass> lsCls = model.getElements(new TypeFilter(CtClass.class));

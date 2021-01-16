@@ -55,10 +55,12 @@ public class CLSAnalyzer {
 //			System.out.println("[outer class]: " + OuterName + " [inner class]: " + InnerName);
 			
 			/** Building the meta model */
-			String fullClass = proj + "src/main/java/" + OuterName.replaceAll("\\.", "/") + ".java";
+			String fullClass = proj + "src/" + OuterName.replaceAll("\\.", "/") + ".java";
 			Launcher launcher = new Launcher();
 			launcher.addInputResource(fullClass);
 			launcher.getEnvironment().setCommentEnabled(true);
+			launcher.getEnvironment().setAutoImports(false);
+			launcher.getEnvironment().setNoClasspath(true);
 			metaModel = launcher.buildModel();
 			
 			List<CtClass> lscls = metaModel.getElements(new TypeFilter(CtClass.class));
@@ -79,10 +81,12 @@ public class CLSAnalyzer {
 //			System.out.println("[outer class]: " + OuterName);
 			
 			/** Building the meta model */
-			String fullClass = proj + "src/main/java/" + OuterName.replaceAll("\\.", "/") + ".java";
+			String fullClass = proj + "src/" + OuterName.replaceAll("\\.", "/") + ".java";
 			Launcher launcher = new Launcher();
 			launcher.addInputResource(fullClass);
 			launcher.getEnvironment().setCommentEnabled(true);
+			launcher.getEnvironment().setAutoImports(false);
+			launcher.getEnvironment().setNoClasspath(true);
 			metaModel = launcher.buildModel();
 			
 			List<CtClass> lscls = metaModel.getElements(new TypeFilter(CtClass.class));

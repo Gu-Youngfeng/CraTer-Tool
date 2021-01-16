@@ -82,10 +82,10 @@ public class CrashNode {
 		bottom2MethodName = getMethodName(bottom2Line);
 		bottom2MethodLine = getMethodLine(bottom2Line);		
 		
-		exceptionName = getExceptionName(crash.get(1));
+		exceptionName = getExceptionName(crash.get(0));  // fix for dev-code, 1 -> 0; 2020.6.24
 //		System.out.println("exception type: " + exceptName);
 		
-		loc = crash.size()-2;
+		loc = crash.size()-1;  // fix for dev-code, remove -2; 2020.6.24
 		classNum = getClassNum(crash);
 		methodNum = getMethodNum(crash);
 		isOverLoaded = isOverLoaded(crash);
@@ -304,12 +304,20 @@ public class CrashNode {
 	boolean isMethodLine(String line){
 		boolean flag = false;
 		
-		if ( (line.startsWith("\tat org.") || line.startsWith("\tat com.j256") || line.startsWith("\tat net.sf"))
-				&& !line.contains("Test.java") && !line.contains("com.j256.ormlite.h2.H2DatabaseConnection.queryForOne") 
-				&& !line.contains("TestCase.java") && !line.contains("TestUtils.java")
-				&& !line.contains("TestData.java") && !line.contains(".access$")){
-			flag = true;
-		}
+//		if ( (line.startsWith("\tat org.") || line.startsWith("\tat com.j256") || line.startsWith("\tat net.sf"))
+//				&& !line.contains("Test.java") && !line.contains("com.j256.ormlite.h2.H2DatabaseConnection.queryForOne") 
+//				&& !line.contains("TestCase.java") && !line.contains("TestUtils.java")
+//				&& !line.contains("TestData.java") && !line.contains(".access$")){
+//			flag = true;
+//		}   // fix for dev-code; 2020.6.24 [remove]
+		
+		if (line.startsWith("\tat ")){
+			if (!line.contains("Test.java") && !line.contains("com.j256.ormlite.h2.H2DatabaseConnection.queryForOne") 
+					&& !line.contains("TestCase.java") && !line.contains("TestUtils.java")
+					&& !line.contains("TestData.java") && !line.contains(".access$")){
+				flag = true;
+			}
+		}   // fix for dev-code; 2020.6.24 [added]
 		
 		return flag;
 	}
@@ -505,13 +513,13 @@ public class CrashNode {
 	
 	public void showBasicInfo(){
 //		System.out.println("------------------------------------------------");
-		System.out.printf("%-20s%s\n","Exception Type: ",getExpName());
-		System.out.printf("%-20s%s\n","Trace lines: ",loc);
-		System.out.printf("%-20s%s\n","Number of Classes: ",getClassNum());
-		System.out.printf("%-20s%s\n","Number of Methods: ",getMethodNum());
-		System.out.printf("%-20s%s\n","polymorphic or not: ",getisOverLoaded());
-		System.out.printf("%-20s%s\n","Crash Position: ",getTopClassName() + ", " + getTopMethodName() + ", " + getTopMethodLine());
-		System.out.printf("%-20s%s\n","Crash Trigger: ",getBottomClassName() + ", " + getBottomMethodName() + ", " + getBottomMethodLine());
+		System.out.printf("%20s: %s\n","Exception Type",getExpName());
+		System.out.printf("%20s: %s\n","Trace lines",loc);
+		System.out.printf("%20s: %s\n","Number of Classes",getClassNum());
+		System.out.printf("%20s: %s\n","Number of Methods",getMethodNum());
+		System.out.printf("%20s: %s\n","polymorphic or not",getisOverLoaded());
+		System.out.printf("%20s: %s\n","Crash Position",getTopClassName() + ", " + getTopMethodName() + ", " + getTopMethodLine());
+		System.out.printf("%20s: %s\n","Crash Trigger",getBottomClassName() + ", " + getBottomMethodName() + ", " + getBottomMethodLine());
 //		System.out.println("[BOT-2]: " + getBottom2ClassName() + ", " + getBottom2MethodName() + ", " + getBottom2MethodLine());
 		System.out.println("------------------------------------------------\n");
 	}

@@ -25,7 +25,8 @@ public class RepsUtilier {
 	public static double[] getFeatures(String path, String proj){
 		List<CrashNode> lsCrash = new ArrayList<CrashNode>();
 		try {
-			lsCrash = getSingleCrash(path);
+//			lsCrash = getSingleCrash(path);
+			lsCrash = getSingleCrashWithoutBug(path);
 		} catch (Exception e) {			
 			e.printStackTrace();
 		}
@@ -34,9 +35,9 @@ public class RepsUtilier {
 		
 		for(int i=0; i<lsCrash.size(); i++){ // for each crash node: start
 	
-			System.out.println(">>>>> Crash Information: ");
-			System.out.println("Source code path : " + proj);
-			System.out.println("Stack trace path : " + path);
+			System.out.printf(">>>>> Crash Information: \n");
+			System.out.printf("%20s: %s\n", "Crashed Java project", proj);
+			System.out.printf("%20s: %s\n", "Crash stack trace", path);
 
 			lsCrash.get(i).showBasicInfo();
 			
@@ -97,10 +98,17 @@ public class RepsUtilier {
 				}
 				
 			}
-			System.out.println(">>>>> Extracted Features: ");
+			System.out.println(">>>>> Extracted Features (all 89 features): ");
 			feature_total = addMultipleArraies(features_0, features_1, features_2, features_3, features_4, features_5);
-			for(double fea: feature_total) System.out.print(fea + ", "); // break line for next crash
-			System.out.println();
+			int cc = 0;
+			for(double fea: feature_total) {
+				System.out.printf("%8.3f,", fea); // break line for next crash
+				cc++;
+				if(cc%10 == 0){
+					System.out.println();
+				}
+			}
+			System.out.println("\n------------------------------------------------\n");
 		}//end
 		
 		return feature_total;
@@ -125,6 +133,7 @@ public class RepsUtilier {
 		
 		// split the xx_mutants.txt in "crashrep"
 		File file = new File(path);
+
 		if(!file.exists()){
 			System.out.println("[ERROR]: No such file! " + path); 
 			return null;
@@ -161,6 +170,48 @@ public class RepsUtilier {
 			lsCrash.add(crash);
 			singleCrash.clear();
 		}
+		
+		br.close();
+		fr.close();
+		
+		return lsCrash;
+	}
+	
+	/** Assume that the file only contains one crash stack trace.*/
+	public static List<CrashNode> getSingleCrashWithoutBug(String path) throws Exception{
+		List<CrashNode> lsCrash = new ArrayList<CrashNode>();
+		
+		
+		// split the xx_mutants.txt in "crashrep"
+		File file = new File(path);
+
+		if(!file.exists()){
+			System.out.println("[ERROR]: No such file! " + path); 
+			return null;
+		}
+		
+		FileReader fr = new FileReader(file);
+		BufferedReader br = new BufferedReader(fr);
+		
+		String str = "";
+		List<String> singleCrash = new ArrayList<String>(); // each single crash is a string list 
+		while((str=br.readLine())!=null){
+			
+			if(str.contains("(Unknown Source)")){ 
+				// we cannot solve the UNKONWN SOURCE in stack trace
+				continue;
+			}
+			
+			if(str.trim().equals("")){
+				// we ignore the empty line in stack trace
+				continue;
+			}
+			
+			singleCrash.add(str);			
+		}
+
+		CrashNode crash = new CrashNode(singleCrash);
+		lsCrash.add(crash);
 		
 		br.close();
 		fr.close();

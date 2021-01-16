@@ -710,10 +710,12 @@ public class MEDAnalyzer {
 			
 //			System.out.println("[inner]:" + innerClass);
 			/** Building the meta model */
-			String fullClass = proj + "src/main/java/" + clsName.replaceAll("\\.", "/") + ".java";		
+			String fullClass = proj + "src/" + clsName.replaceAll("\\.", "/") + ".java";		
 			Launcher launcher = new Launcher();
 			launcher.addInputResource(fullClass); 
 			launcher.getEnvironment().setCommentEnabled(true);
+			launcher.getEnvironment().setAutoImports(false);
+			launcher.getEnvironment().setNoClasspath(true);
 			CtModel metaModel = launcher.buildModel();
 			
 			/** Building the CtMethod */	
@@ -739,10 +741,13 @@ public class MEDAnalyzer {
 			}
 		}else{ // no inner class
 			/** Building the meta model */
-			String fullClass = proj + "src/main/java/" + clsName.replaceAll("\\.", "/") + ".java";		
+			String fullClass = proj + "src/" + clsName.replaceAll("\\.", "/") + ".java";
+//			System.out.println("MEDAnalyzer - fullClass:"+fullClass+":"+medLine);
 			Launcher launcher = new Launcher();
 			launcher.addInputResource(fullClass);
 			launcher.getEnvironment().setCommentEnabled(true);
+			launcher.getEnvironment().setAutoImports(false);
+			launcher.getEnvironment().setNoClasspath(true);
 			CtModel metaModel = launcher.buildModel();
 			
 			/** Building the CtMethod */	
