@@ -5,11 +5,13 @@ import java.util.List;
 
 import cstar.yongfeng.analysis.CrashNode;
 import cstar.yongfeng.analysis.RepsUtilier;
+import weka.classifiers.Classifier;
 import weka.classifiers.meta.FilteredClassifier;
 import weka.classifiers.trees.RandomForest;
 import weka.core.DenseInstance;
 import weka.core.Instance;
 import weka.core.Instances;
+//import weka.core.SerializationHelper;
 import weka.core.converters.ConverterUtils.DataSource;
 import weka.filters.supervised.instance.SMOTE;
 
@@ -63,42 +65,27 @@ public class Entry {
 			double[] feature_total = RepsUtilier.getFeatures(tracePath, projPath);			
 			
 			// currently instance
-			Instances empty_ins = DataSource.read("files/empty.arff");	
-			empty_ins.setClassIndex(empty_ins.numAttributes() - 1);
 			Instance currently_ins = new DenseInstance(feature_total.length);
 			for(int i=0; i<feature_total.length; i++) {
 				currently_ins.setValue(i, feature_total[i]);
 			}
 			
-			// train
-			Instances ins = DataSource.read("files/training_set.arff");
-			ins.setClassIndex(ins.numAttributes() - 1);
-			
-			// imbalance processing
-			SMOTE smote = new SMOTE();
-			smote.setInputFormat(ins);
-			
-			// classifiers setting
-			RandomForest rf = new RandomForest();			
-			FilteredClassifier fc = new FilteredClassifier();
-			fc.setClassifier(rf);
-			fc.setFilter(smote);
-			
-			// predict
-			fc.buildClassifier(ins);
-//			String pre_result = fc.classifyInstance(currently_ins)>0?"OutTrace":"InTrace";
+//			Classifier fc = learnClassifierByTrainingSet("files/training_set.arff"); // learn a classifier
+			Classifier fc = getClassifierByTrainedModel("files/crater.model");       // load the classifier
+
 			double[] pre_dis = fc.distributionForInstance(currently_ins);
 			DecimalFormat df = new DecimalFormat("0.00%");
-			System.out.println(">>>>> Prediction Results:");
-			System.out.printf("Possibility: {INSIDE - %s, OUTSIDE - %s}.\n", df.format(pre_dis[0]), df.format(pre_dis[1]));
-			
+			System.out.printf(">>>>> Prediction Results:\n");
+			System.out.printf("Classifier    : %s\n", fc.getClass().getName());
+			System.out.printf("Possibility   : INSIDE - %s, OUTSIDE - %s.\n", df.format(pre_dis[0]), df.format(pre_dis[1]));
+							    
 			List<CrashNode> lsCrashes = RepsUtilier.getSingleCrashWithoutBug(tracePath);
 			List<String> stacktrace = lsCrashes.get(0).stackTraces;
 			if(pre_dis[0] > pre_dis[1]){
-				System.out.println("The root-cause-line of the given crash may reside INSIDE of the stack trace. Try to check \nthe following specific lines,\n");
+				System.out.println("Recommandation: The root-cause-line of the given crash may reside INSIDE of the stack trace. Try to check \nthe following specific lines,\n");
 				for(String line: stacktrace) System.out.println(line);
 			}else{
-				System.out.println("The root-cause-line of the given crash may reside OUTSIDE of the stack trace. Try to check \nthe code through the method invocations, \n");
+				System.out.println("Recommandation: The root-cause-line of the given crash may reside OUTSIDE of the stack trace. Try to check \nthe code through the method invocations, \n");
 				for(String line: stacktrace) System.out.println(line);
 			}
 			System.out.println("\n------------------------------------------------");
@@ -106,6 +93,34 @@ public class Entry {
 		}catch (Exception e) {
 			printHelpInfo();
 		}
+	}
+	
+	/** To learn a classifier by the training set */
+	public static Classifier learnClassifierByTrainingSet(String trainSetPath) throws Exception{
+		// train
+		Instances ins = DataSource.read(trainSetPath);
+		ins.setClassIndex(ins.numAttributes() - 1);
+		
+		// imbalance processing
+		SMOTE smote = new SMOTE();
+		smote.setInputFormat(ins);
+		
+//		// classifiers setting
+		RandomForest rf = new RandomForest();			
+		FilteredClassifier fc = new FilteredClassifier();
+		fc.setClassifier(rf);
+		fc.setFilter(smote);
+//		
+//		// predict
+		fc.buildClassifier(ins);
+//		SerializationHelper.write("files/crater.model", fc);
+		
+		return fc;
+	}
+	
+	/** To load a classifier from the modelPath */
+	public static Classifier getClassifierByTrainedModel(String modelPath) throws Exception{
+		return (Classifier) weka.core.SerializationHelper.read(modelPath);
 	}
 	
 	/** Print the possible failed reasons. */
