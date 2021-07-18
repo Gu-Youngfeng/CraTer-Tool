@@ -16,12 +16,6 @@ import spoon.reflect.visitor.filter.TypeFilter;
 
 public class CLSAnalyzer {
 
-	public static void main(String[] args) {
-
-		CLSAnalyzer clsr = new CLSAnalyzer("src/main/resources/projs/JSQL_parent/", "net.sf.jsqlparser.statement.insert.InsertModifierPriority");		
-		clsr.showCLSFeatures();
-	}
-	
 	/**meta model of spoon*/
 	private CtModel metaModel;
 	@SuppressWarnings("rawtypes")
@@ -128,7 +122,6 @@ public class CLSAnalyzer {
 	
 	/***
 	 * <pre>To get extends or implements class of from class</pre>
-	 * @param path
 	 * @return
 	 * @throws Exception
 	 */
@@ -151,7 +144,6 @@ public class CLSAnalyzer {
 	
 	/***
 	 * <pre>To get fields of from class</pre>
-	 * @param path
 	 * @return
 	 * @throws Exception
 	 */
@@ -171,7 +163,6 @@ public class CLSAnalyzer {
 	
 	/***
 	 * <pre>To get local variables of from class</pre>
-	 * @param path
 	 * @return
 	 * @throws Exception
 	 */
@@ -191,7 +182,6 @@ public class CLSAnalyzer {
 	
 	/***
 	 * <pre>To get methods of from class</pre>
-	 * @param path
 	 * @return
 	 * @throws Exception
 	 */
@@ -211,7 +201,6 @@ public class CLSAnalyzer {
 	
 	/***
 	 * <pre>To get comments from class.</pre>
-	 * @param path class full path
 	 * @return
 	 * @throws Exception
 	 */
