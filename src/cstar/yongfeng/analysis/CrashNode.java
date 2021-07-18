@@ -300,19 +300,19 @@ public class CrashNode {
 //		System.out.println("[TOP]: " + topLine);
 		return topLine;
 	}
-	
+
+	/**
+	 * To verify whether the line includes a source code method.
+	 * We filter out the line that contains java inner-method or java test-case method.
+	 * @param line a single line in the stack trace
+	 * @return
+	 */
 	boolean isMethodLine(String line){
 		boolean flag = false;
-		
-//		if ( (line.startsWith("\tat org.") || line.startsWith("\tat com.j256") || line.startsWith("\tat net.sf"))
-//				&& !line.contains("Test.java") && !line.contains("com.j256.ormlite.h2.H2DatabaseConnection.queryForOne") 
-//				&& !line.contains("TestCase.java") && !line.contains("TestUtils.java")
-//				&& !line.contains("TestData.java") && !line.contains(".access$")){
-//			flag = true;
-//		}   // fix for dev-code; 2020.6.24 [remove]
-		
+
 		if (line.startsWith("\tat ")){
-			if (!line.contains("Test.java") && !line.contains("com.j256.ormlite.h2.H2DatabaseConnection.queryForOne") 
+			if (!line.contains("Test.java") && !line.contains("java.util") && !line.contains("java.lang") && !line.contains("java.io")
+					&& !line.contains("java.net") && !line.contains("java.awt") && !line.contains("java.sql")
 					&& !line.contains("TestCase.java") && !line.contains("TestUtils.java")
 					&& !line.contains("TestData.java") && !line.contains(".access$")){
 				flag = true;
@@ -321,14 +321,18 @@ public class CrashNode {
 		
 		return flag;
 	}
-	
+
+	/**
+	 * To verify whether the line includes a test-case method.
+	 * We regard that a line that contains Test.java, TestCase.java, ..., as a test-case method.
+	 * @param line a single line in the stack trace
+	 * @return
+	 */
 	boolean isTestLine(String line){
 		boolean flag = false;
 		
-		if ( (line.startsWith("\tat org.") || line.startsWith("\tat com.j256") || line.startsWith("\tat net.sf")) 
-				&& (line.contains("Test.java") || line.contains("com.j256.ormlite.h2.H2DatabaseConnection.queryForOne") 
-						|| line.contains("TestCase.java") || line.contains("TestUtils.java")
-						|| line.contains("TestData.java")) ){
+		if (line.contains("Test.java") || line.contains("TestCase.java") || line.contains("TestUtils.java")
+						|| line.contains("TestData.java") ){
 			flag = true;
 		}
 		
@@ -532,7 +536,6 @@ public class CrashNode {
 	}
 	
 	/**<p>Extract ST01 - ST09 from the stack trace. </p>
-	 * @param crash single crash
 	 * */
 	public double[] showSTFeatures(){
 		/**ST01: Type of the exception in the crash*/
