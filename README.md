@@ -28,7 +28,7 @@ Exception in thread "main" java.lang.IndexOutOfBoundsException: Index: 1, Size: 
 Then we use the following command to predict the fault position of a crash.
 
 ```cmd
-$ java -jar crater-tool.jar -projPath example/test_proj -projStackTrace example/trace_iobe.txt
+$ java -jar crater-tool.jar -projPath example/test_proj/ -projStackTrace example/trace_iobe.txt
 ```
 
 #### 2.2 OUTPUT
