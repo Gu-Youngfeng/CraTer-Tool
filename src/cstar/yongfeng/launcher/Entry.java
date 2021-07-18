@@ -60,41 +60,41 @@ public class Entry {
 	 */
 	public void run(String projPath, String tracePath) {
 				
-//		try {
-//			// extract features from stack trace and source code
-//			double[] feature_total = RepsUtilier.getFeatures(tracePath, projPath);
-//
-//			// currently instance
-//			Instance currently_ins = new DenseInstance(feature_total.length);
-//			for(int i=0; i<feature_total.length; i++) {
-//				currently_ins.setValue(i, feature_total[i]);
-//			}
-//
-////			Classifier fc = learnClassifierByTrainingSet("files/training_set.arff"); // learn a classifier
-//			Classifier fc = getClassifierByTrainedModel("files/crater.model");       // load the classifier
-//
-//			double[] pre_dis = fc.distributionForInstance(currently_ins);
-//			DecimalFormat df = new DecimalFormat("0.00%");
-//			System.out.printf(">>>>> Prediction Results:\n");
-//			System.out.printf("Classifier    : %s\n", fc.getClass().getName());
-//			System.out.printf("Possibility   : INSIDE - %s, OUTSIDE - %s.\n", df.format(pre_dis[0]), df.format(pre_dis[1]));
-//
-//			List<CrashNode> lsCrashes = RepsUtilier.getSingleCrashWithoutBug(tracePath);
-//			List<String> stacktrace = lsCrashes.get(0).stackTraces;
-//			if(pre_dis[0] > pre_dis[1]){
-//				System.out.println("Recommandation: The root-cause-line of the given crash may reside INSIDE of the stack trace. Try to check \nthe following specific lines,\n");
-//				for(String line: stacktrace) System.out.println(line);
-//			}else{
-//				System.out.println("Recommandation: The root-cause-line of the given crash may reside OUTSIDE of the stack trace. Try to check \nthe code through the method invocations, \n");
-//				for(String line: stacktrace) System.out.println(line);
-//			}
-//			System.out.println("\n------------------------------------------------");
-//
-//		}catch (Exception e) {
-//			printHelpInfo();
-//		}
+		try {
+			// extract features from stack trace and source code
+			double[] feature_total = RepsUtilier.getFeatures(tracePath, projPath);
 
-		printHelpInfo();
+			// currently instance
+			Instance currently_ins = new DenseInstance(feature_total.length);
+			for(int i=0; i<feature_total.length; i++) {
+				currently_ins.setValue(i, feature_total[i]);
+			}
+
+//			Classifier fc = learnClassifierByTrainingSet("files/training_set.arff"); // learn a classifier
+			Classifier fc = getClassifierByTrainedModel("files/crater.model");       // load the classifier
+
+			double[] pre_dis = fc.distributionForInstance(currently_ins);
+			DecimalFormat df = new DecimalFormat("0.00%");
+			System.out.printf(">>>>> Prediction Results:\n");
+			System.out.printf("Classifier    : %s\n", fc.getClass().getName());
+			System.out.printf("Possibility   : INSIDE - %s, OUTSIDE - %s.\n", df.format(pre_dis[0]), df.format(pre_dis[1]));
+
+			List<CrashNode> lsCrashes = RepsUtilier.getSingleCrashWithoutBug(tracePath);
+			List<String> stacktrace = lsCrashes.get(0).stackTraces;
+			if(pre_dis[0] > pre_dis[1]){
+				System.out.println("Recommandation: The root-cause-line of the given crash may reside INSIDE of the stack trace. Try to check \nthe following specific lines,\n");
+				for(String line: stacktrace) System.out.println(line);
+			}else{
+				System.out.println("Recommandation: The root-cause-line of the given crash may reside OUTSIDE of the stack trace. Try to check \nthe code through the method invocations, \n");
+				for(String line: stacktrace) System.out.println(line);
+			}
+			System.out.println("\n------------------------------------------------");
+
+		}catch (Exception e) {
+			printHelpInfo();
+		}
+
+//		printHelpInfo();
 	}
 	
 	/** To learn a classifier by the training set */
