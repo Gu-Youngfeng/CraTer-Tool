@@ -27,7 +27,7 @@ import weka.filters.supervised.instance.SMOTE;
  * <b>"-projStackTrace"</b> refers to the path of stack trace file (in .txt format). 
  * </p>
  * @author yongfeng
- * @date 2021.1.16
+ * @date 2021.7.18
  */
 public class Entry {
 
@@ -60,39 +60,41 @@ public class Entry {
 	 */
 	public void run(String projPath, String tracePath) {
 				
-		try {
-			// extract features from stack trace and source code
-			double[] feature_total = RepsUtilier.getFeatures(tracePath, projPath);			
-			
-			// currently instance
-			Instance currently_ins = new DenseInstance(feature_total.length);
-			for(int i=0; i<feature_total.length; i++) {
-				currently_ins.setValue(i, feature_total[i]);
-			}
-			
-//			Classifier fc = learnClassifierByTrainingSet("files/training_set.arff"); // learn a classifier
-			Classifier fc = getClassifierByTrainedModel("files/crater.model");       // load the classifier
+//		try {
+//			// extract features from stack trace and source code
+//			double[] feature_total = RepsUtilier.getFeatures(tracePath, projPath);
+//
+//			// currently instance
+//			Instance currently_ins = new DenseInstance(feature_total.length);
+//			for(int i=0; i<feature_total.length; i++) {
+//				currently_ins.setValue(i, feature_total[i]);
+//			}
+//
+////			Classifier fc = learnClassifierByTrainingSet("files/training_set.arff"); // learn a classifier
+//			Classifier fc = getClassifierByTrainedModel("files/crater.model");       // load the classifier
+//
+//			double[] pre_dis = fc.distributionForInstance(currently_ins);
+//			DecimalFormat df = new DecimalFormat("0.00%");
+//			System.out.printf(">>>>> Prediction Results:\n");
+//			System.out.printf("Classifier    : %s\n", fc.getClass().getName());
+//			System.out.printf("Possibility   : INSIDE - %s, OUTSIDE - %s.\n", df.format(pre_dis[0]), df.format(pre_dis[1]));
+//
+//			List<CrashNode> lsCrashes = RepsUtilier.getSingleCrashWithoutBug(tracePath);
+//			List<String> stacktrace = lsCrashes.get(0).stackTraces;
+//			if(pre_dis[0] > pre_dis[1]){
+//				System.out.println("Recommandation: The root-cause-line of the given crash may reside INSIDE of the stack trace. Try to check \nthe following specific lines,\n");
+//				for(String line: stacktrace) System.out.println(line);
+//			}else{
+//				System.out.println("Recommandation: The root-cause-line of the given crash may reside OUTSIDE of the stack trace. Try to check \nthe code through the method invocations, \n");
+//				for(String line: stacktrace) System.out.println(line);
+//			}
+//			System.out.println("\n------------------------------------------------");
+//
+//		}catch (Exception e) {
+//			printHelpInfo();
+//		}
 
-			double[] pre_dis = fc.distributionForInstance(currently_ins);
-			DecimalFormat df = new DecimalFormat("0.00%");
-			System.out.printf(">>>>> Prediction Results:\n");
-			System.out.printf("Classifier    : %s\n", fc.getClass().getName());
-			System.out.printf("Possibility   : INSIDE - %s, OUTSIDE - %s.\n", df.format(pre_dis[0]), df.format(pre_dis[1]));
-							    
-			List<CrashNode> lsCrashes = RepsUtilier.getSingleCrashWithoutBug(tracePath);
-			List<String> stacktrace = lsCrashes.get(0).stackTraces;
-			if(pre_dis[0] > pre_dis[1]){
-				System.out.println("Recommandation: The root-cause-line of the given crash may reside INSIDE of the stack trace. Try to check \nthe following specific lines,\n");
-				for(String line: stacktrace) System.out.println(line);
-			}else{
-				System.out.println("Recommandation: The root-cause-line of the given crash may reside OUTSIDE of the stack trace. Try to check \nthe code through the method invocations, \n");
-				for(String line: stacktrace) System.out.println(line);
-			}
-			System.out.println("\n------------------------------------------------");
-	
-		}catch (Exception e) {
-			printHelpInfo();
-		}
+		printHelpInfo();
 	}
 	
 	/** To learn a classifier by the training set */
@@ -122,18 +124,23 @@ public class Entry {
 	public static Classifier getClassifierByTrainedModel(String modelPath) throws Exception{
 		return (Classifier) weka.core.SerializationHelper.read(modelPath);
 	}
-	
-	/** Print the possible failed reasons. */
+
+	/** To try to figure out the exception while using CraTer */
 	public static void printHelpInfo(){
-		System.err.println("Oops, CraTer is failed!\n-----------------");
-		System.err.println("(1) Try to check the parameters that Crater supports:");
-		System.out.println("\t -projPath       <path/to/project/>");
-		System.out.println("\t -projStackTrace <path/to/crash.txt>");
-		System.out.println("\t -cp             <path/to/proj.jar>");	
-		System.err.println("(2) Try to check the format of crash.txt:");
-		System.out.println("\t stack trace should be saved in a txt format.");
-		System.err.println("(3) Try to check the class path of analysized project");
-		System.out.println("\t Third-party libraries should be added followed by \'-cp\'");
+		System.out.println("Oops, CraTer is failed!\n-----------------");
+		// parameters
+		System.out.println("(1) Try to check the parameters that Crater supports:" +
+				"\n\t -projPath       <path/to/project/>" +
+				"\n\t -projStackTrace <path/to/crash.txt>");  		
+		// stack trace format
+		System.out.println("(2) Try to check the format of crash.txt:" +
+				"\n\t stack trace should be saved in a txt format. The example crash.txt is in `example/test_proj/trace_npe.txt`");  
+		// project path
+		System.out.println("(3) Try to check the path of the Java project:" +
+				"\n\t verify the validity of root path and construction the project. The example project is `example/test_proj/`");  
+		// Java classes
+		System.out.println("(4) Try to check whether one Java file contains two Java classes:" +
+				"\n\t In CraTer, each class is considered as a single Java file");  
 	}
 
 }
