@@ -1,0 +1,6 @@
+Exception in thread "main" java.lang.IndexOutOfBoundsException: Index: 1, Size: 0
+	at java.util.ArrayList.rangeCheck(ArrayList.java:659)
+	at java.util.ArrayList.get(ArrayList.java:435)
+	at IOBE.find_elem_by_idx(IOBE.java:27)
+	at IOBE.trigger_null_pointer_exp(IOBE.java:12)
+	at IOBE.main(IOBE.java:5)
