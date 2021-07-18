@@ -1,67 +1,81 @@
 # CraTer-Tool
 
-## Introduction
+## 1. Introduction
 **CraTer-Tool** is a light-weight prototype of [CraTer](https://github.com/Gu-Youngfeng/CraTer/), it can quickly analysis a Java crash and predict whether the fault reside inside or outside of the stack trace. 
 
 The key ideas of the prototype are: **1)** build a classification model based on the extracted features from historical crashes; **2)** use the built model to predict the fault position of new-submited crash.
 
-## Deployment
-1. Download the project and import it into Eclipse IDE (or other Java IDE).
-2. the compilation of faulty project (i.e., jar format) as well as its dependencies (i.e., jar format) are required to be added to the classpath of the **CraTer-Tool** project.
-3. Package the `crater-tool.jar` from **CraTer-Tool** project and put it into the root directory of **CraTer-Tool** project. This step can be implemented by the support of Eclipse IDE.
+## 2. Usage example
 
-## Usage example
+Please download the whole project since the `crater-tool.jar` requires the training data in the `files/` folder. 
+For a quick start, we provide a usage example in the `example/` folder.
 
-Suppose that we have a faulty project `E:/codec/`, and its crash trace is saved in the file `E:/codec-1.txt`.
+#### 2.1 INPUT:
+
+1. The **path of the faulty project** is in the `example/test_proj/`. 
+
+2. The **stack trace** of crash is in the `example/trace_iobe.txt` which record the stack trace of the IndexOutOfBoundsException crash,
 
 ```
-BUG-1
---- org.apache.commons.codec.binary.Base32InputStreamTest::testBase32InputStreamByteByByte
-java.lang.ArrayIndexOutOfBoundsException: 1126916991
-	at org.apache.commons.codec.binary.Base32.encode(Base32.java:515)
-	at org.apache.commons.codec.binary.BaseNCodecInputStream.read(BaseNCodecInputStream.java:160)
-	at org.apache.commons.codec.binary.BaseNCodecInputStream.read(BaseNCodecInputStream.java:97)
+Exception in thread "main" java.lang.IndexOutOfBoundsException: Index: 1, Size: 0
+	at java.util.ArrayList.rangeCheck(ArrayList.java:659)
+	at java.util.ArrayList.get(ArrayList.java:435)
+	at IOBE.find_elem_by_idx(IOBE.java:27)
+	at IOBE.trigger_null_pointer_exp(IOBE.java:12)
+	at IOBE.main(IOBE.java:5)
 ```
 
 Then we use the following command to predict the fault position of a crash.
 
 ```cmd
-$ java -jar crater-tool.jar -projPath E:/codec/ -projStackTrace E:/codec-1.txt
+$ java -jar crater-tool.jar -projPath example/test_proj -projStackTrace example/trace_iobe.txt
 ```
 
-As we can see, **crater-tool.jar** has two inputs and its output is the prediction results as follows.
-According to the prediction results, **crater-tool.jar** predicts the fault resides inside of the stack trace.
+#### 2.2 OUTPUT
+
+After executing the above command in the terminal, we can get the following output, including the crash informaton,
+extrcted features, and prediction results.
+
+According to the prediction results, **crater-tool.jar** guess that the fault may reside inside of the stack trace.
 
 ```
->>>>> Crash Information:
-Source code path : E:/codec/
-Stack trace path : E:/codec-1.txt
-Exception Type:     ArrayIndexOutOfBoundsException
-Trace lines:        3
-Number of Classes:  2
-Number of Methods:  3
-polymorphic or not: true
-Crash Position:     org.apache.commons.codec.binary.Base32, encode, 515
-Crash Trigger:      org.apache.commons.codec.binary.BaseNCodecInputStream, read, 97
+>>>>> Crash Information: 
+Crashed Java project: example/test_proj/
+   Crash stack trace: example/trace_iobe.txt
+      Exception Type: IndexOutOfBoundsException
+         Trace lines: 5
+   Number of Classes: 1
+   Number of Methods: 3
+  polymorphic or not: false
+      Crash Position: IOBE, find_elem_by_idx, 27
+       Crash Trigger: IOBE, main, 5
 ------------------------------------------------
 
->>>>> Extracted Features:
-14.0, 3.0, 2.0, 3.0, 0.0, 6.0, 6.0, 21.0, 4.0, 60.0, 82.0, 11.0, 14.0, 
-3.0, 0.0, 0.0, 312.0, 95.0, 4.0, 5.0, 7.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 
-...
-0.09090909361839294, 0.1818181872367859, 0.1818181872367859, 0.0, 0.3636363744735718,
+>>>>> Extracted Features (all 89 features): 
+  13.000,   5.000,   1.000,   3.000,   1.000,   4.000,  16.000,   4.000,   4.000,   2.000,
+   2.000,   3.000,   0.000,   5.000,   1.000,   1.000,   1.000,   3.000,   2.000,   0.000,
+   0.000,   0.000,   0.000,   0.000,   0.000,   0.000,   0.000,   0.000,   0.000,   0.000,
+   1.000,   1.000,   0.000,   0.000,   0.667,   0.000,   0.000,   0.000,   0.000,   0.000,
+   0.000,   0.000,   0.000,   0.000,   0.000,   0.000,   0.333,   0.333,   0.000,   0.000,
+   3.000,   0.000,   5.000,   1.000,   1.000,   1.000,   3.000,   1.000,   0.000,   0.000,
+   0.000,   0.000,   0.000,   0.000,   0.000,   0.000,   0.000,   0.000,   0.000,   1.000,
+   0.000,   0.000,   0.000,   0.333,   0.000,   0.000,   0.000,   0.000,   0.000,   0.000,
+   0.000,   0.000,   0.000,   0.000,   0.000,   0.333,   0.000,   0.000,   0.000,
 ------------------------------------------------
 
->>>>> Crashing Fault Residence:
-Intrace: 0.750 vs OutTrace: 0.250
-The crashing fault may reside INSIDE of the stack trace. Try to check the following lines,
+>>>>> Prediction Results:
+Classifier    : weka.classifiers.meta.FilteredClassifier
+Possibility   : INSIDE - 39.97%, OUTSIDE - 60.03%.
+Recommandation: The root-cause-line of the given crash may reside OUTSIDE of the stack trace. Try to check 
+the code through the method invocations, 
 
-        at org.apache.commons.codec.binary.Base32.encode(Base32.java:515)
-        at org.apache.commons.codec.binary.BaseNCodecInputStream.read(BaseNCodecInputStream.java:160)
-        at org.apache.commons.codec.binary.BaseNCodecInputStream.read(BaseNCodecInputStream.java:97)
+	at IOBE.find_elem_by_idx(IOBE.java:27)
+	at IOBE.trigger_null_pointer_exp(IOBE.java:12)
+	at IOBE.main(IOBE.java:5)
 
+------------------------------------------------
 ```
 
-## Parameter tuning
+## 3. Parameter tuning
 - If you wanna change the training set of `crater-tool.jar`, you can find and replace the `files/training_set.csv`.
 - If you wanna change the classifier used in `crater-tool.jar`, you can find and modify the code in Line 77 of the 'cstar.yongfeng.launcher.Entry.java'
