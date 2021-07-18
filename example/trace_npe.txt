@@ -1,0 +1,4 @@
+Exception in thread "main" java.lang.NullPointerException
+	at NPE.printString(NPE.java:14)
+	at NPE.print(NPE.java:10)
+	at NPE.main(NPE.java:19)
